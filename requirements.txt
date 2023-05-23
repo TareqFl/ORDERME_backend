@@ -1,6 +1,6 @@
-flask~=2.3.2
+flask
 flask_cors
-SQLAlchemy~=2.0.12
+SQLAlchemy
 flask_jwt_extended
 flask-bcrypt
 stripe

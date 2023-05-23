@@ -42,8 +42,14 @@ def create_payment():
 
 
 @app.route("/")
-@jwt_required()
 def main_route():
+
+    return "Welcome to Orderme API"
+
+
+@app.route("/auth")
+@jwt_required()
+def auth_route():
     username = get_jwt_identity()
 
     return jsonify(auth=True, username=username), 200
@@ -94,7 +100,8 @@ def all_products_route():
 
             found_images = Images.query.filter_by(product_id=product.id).all()
             for image in found_images:
-                product_images.append(f"{DOMAIN_NAME}/images/product_id/{product.id}/id/{image.id}")
+                product_images.append(
+                    f"{DOMAIN_NAME}/images/product_id/{product.id}/id/{image.id}")
 
             all_products.append({
                 "store_id": product.store_id,
@@ -123,7 +130,8 @@ def get_product_route():
         files = Images.query.filter_by(product_id=product.id).all()
         images = []
         for file in files:
-            images.append(f"{DOMAIN_NAME}/images/product_id/{product.id}/id/{file.id}")
+            images.append(
+                f"{DOMAIN_NAME}/images/product_id/{product.id}/id/{file.id}")
 
         products.append({
             "id": product.id,
@@ -169,7 +177,8 @@ def add_product():
     if len(images) > 1:
         new_images = images[1::]
         for image in new_images:
-            new_image = Images(product_id=new_product.id, image=files[image].read())
+            new_image = Images(product_id=new_product.id,
+                               image=files[image].read())
             db.session.add(new_image)
             db.session.commit()
             sending_images.append(f"{DOMAIN_NAME}/images/{new_image.id}")
@@ -223,7 +232,8 @@ def update_product_route():
 
         for image in files:
             if image != "thumbnail":
-                new_image = Images(product_id=found_product.id, image=files[image].read())
+                new_image = Images(product_id=found_product.id,
+                                   image=files[image].read())
                 db.session.add(new_image)
 
         db.session.commit()
@@ -251,7 +261,8 @@ def update_product_route():
 
         for image in files:
             if image != "thumbnail":
-                new_image = Images(product_id=found_product.id, image=files[image].read())
+                new_image = Images(product_id=found_product.id,
+                                   image=files[image].read())
                 db.session.add(new_image)
 
         db.session.commit()
@@ -269,6 +280,18 @@ def update_product_route():
         return jsonify(msg="Both False", thumbnail=changed_thumbnail, images=changed_images), 200
 
 
+@app.route("/delete", methods=["DELETE"])
+def delete_route():
+    id_ = request.json["id"]
+    found_product = Product.query.filter_by(id=id_).first()
+    found_images = Images.query.filter_by(product_id=id_)
+    for image in found_images:
+        db.session.delete(image)
+    db.session.delete(found_product)
+    db.session.commit()
+    return jsonify(msg=True)
+
+
 @app.route("/thumbnail/<int:number>")
 def get_image(number):
     found_product = Product.query.filter_by(id=number).first()
@@ -281,12 +304,10 @@ def get_images(number, id_):
     found_images = Images.query.filter_by(product_id=number, id=id_).first()
 
     if request.method == "GET":
-        print("GET")
         return send_file(BytesIO(found_images.image), mimetype="image"), 200
 
     db.session.delete(found_images)
     db.session.commit()
-    print("DELETE route")
     return jsonify(msg="Delete Route"), 200
 
 
